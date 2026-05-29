@@ -1,0 +1,14 @@
+com.gridynamics.forge.guardrail
+com.gridynamics.forge.guardrail.cache
+com.gridynamics.forge.guardrail.chain
+com.gridynamics.forge.guardrail.config
+com.gridynamics.forge.guardrail.embedding
+com.gridynamics.forge.guardrail.exception
+com.gridynamics.forge.guardrail.metrics
+com.gridynamics.forge.guardrail.model
+com.gridynamics.forge.guardrail.registry
+com.gridynamics.forge.guardrail.report
+com.gridynamics.forge.guardrail.semantic
+com.gridynamics.forge.guardrail.spi
+com.gridynamics.forge.guardrail.util
+com.gridynamics.forge.guardrail.web

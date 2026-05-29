@@ -1,0 +1,438 @@
+{
+  "groups": [
+    {
+      "name": "forge.guardrail",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties"
+    },
+    {
+      "name": "forge.guardrail.api",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ApiProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getApi()"
+    },
+    {
+      "name": "forge.guardrail.bias",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getBias()"
+    },
+    {
+      "name": "forge.guardrail.bias.categories",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasProperties",
+      "sourceMethod": "getCategories()"
+    },
+    {
+      "name": "forge.guardrail.fuzzy",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$FuzzyProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getFuzzy()"
+    },
+    {
+      "name": "forge.guardrail.injection",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$InjectionProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getInjection()"
+    },
+    {
+      "name": "forge.guardrail.input-secrets",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$InputProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getInputSecrets()"
+    },
+    {
+      "name": "forge.guardrail.output",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OutputProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getOutput()"
+    },
+    {
+      "name": "forge.guardrail.pii",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$PiiProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getPii()"
+    },
+    {
+      "name": "forge.guardrail.semantic",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getSemantic()"
+    },
+    {
+      "name": "forge.guardrail.semantic.category-thresholds",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$CategoryThresholdProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "sourceMethod": "getCategoryThresholds()"
+    },
+    {
+      "name": "forge.guardrail.semantic.onnx",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OnnxProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "sourceMethod": "getOnnx()"
+    },
+    {
+      "name": "forge.guardrail.semantic.pgvector",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$PgVectorProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "sourceMethod": "getPgvector()"
+    },
+    {
+      "name": "forge.guardrail.semantic.redis",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$RedisCacheProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "sourceMethod": "getRedis()"
+    },
+    {
+      "name": "forge.guardrail.toxicity",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "sourceMethod": "getToxicity()"
+    },
+    {
+      "name": "forge.guardrail.toxicity.categories",
+      "type": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityCategoryProperties",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityProperties",
+      "sourceMethod": "getCategories()"
+    }
+  ],
+  "properties": [
+    {
+      "name": "forge.guardrail.api.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ApiProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.api.evaluate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ApiProperties",
+      "defaultValue": "\/api\/guardrail\/evaluate"
+    },
+    {
+      "name": "forge.guardrail.api.process-path",
+      "type": "java.lang.String",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ApiProperties",
+      "defaultValue": "\/api\/guardrail\/process"
+    },
+    {
+      "name": "forge.guardrail.bias.categories.age",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.categories.caste",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.categories.disability",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.categories.education",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.categories.gender",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.categories.nationality",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.categories.religion",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.categories.sexuality",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.bias.extra-patterns",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Configurable regex overrides for discriminatory intent detection.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasProperties"
+    },
+    {
+      "name": "forge.guardrail.bias.extra-terms",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Legacy plain-text terms — converted to word-boundary regex at runtime.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$BiasProperties"
+    },
+    {
+      "name": "forge.guardrail.fallback-confidence-threshold",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "defaultValue": 0.7
+    },
+    {
+      "name": "forge.guardrail.fuzzy.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$FuzzyProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.injection.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$InjectionProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.input-secrets.confidence-threshold",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$InputProperties",
+      "defaultValue": 0.9
+    },
+    {
+      "name": "forge.guardrail.input-secrets.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$InputProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.max-prompt-length",
+      "type": "java.lang.Integer",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "defaultValue": 8000
+    },
+    {
+      "name": "forge.guardrail.output.check-pii-leakage",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OutputProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.output.check-secrets",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OutputProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.output.check-system-leak",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OutputProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.output.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OutputProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.output.secret-confidence-threshold",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OutputProperties",
+      "defaultValue": 0.9
+    },
+    {
+      "name": "forge.guardrail.pii.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$PiiProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.production-mode",
+      "type": "java.lang.Boolean",
+      "description": "When true, applies fail-closed defaults suitable for production deployments.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "forge.guardrail.semantic.category-thresholds.bias",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$CategoryThresholdProperties",
+      "defaultValue": 0.65
+    },
+    {
+      "name": "forge.guardrail.semantic.category-thresholds.jailbreak",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$CategoryThresholdProperties",
+      "defaultValue": 0.7
+    },
+    {
+      "name": "forge.guardrail.semantic.category-thresholds.prompt-injection",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$CategoryThresholdProperties",
+      "defaultValue": 0.7
+    },
+    {
+      "name": "forge.guardrail.semantic.category-thresholds.toxicity",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$CategoryThresholdProperties",
+      "defaultValue": 0.78
+    },
+    {
+      "name": "forge.guardrail.semantic.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Master switch. Semantic validation is opt-in.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "forge.guardrail.semantic.fail-open",
+      "type": "java.lang.Boolean",
+      "description": "When {@code true} (default), any ONNX\/DB failure is logged and the validator returns no violations instead of throwing. Set {@code false} in production if semantic coverage is mandatory.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.semantic.onnx.intra-op-threads",
+      "type": "java.lang.Integer",
+      "description": "ONNX Runtime intra-op thread count. Keep at 1–2 to avoid CPU contention.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OnnxProperties",
+      "defaultValue": 1
+    },
+    {
+      "name": "forge.guardrail.semantic.onnx.max-tokens",
+      "type": "java.lang.Integer",
+      "description": "Input sequence truncation limit (tokens). 128 is sufficient for most prompts.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OnnxProperties",
+      "defaultValue": 128
+    },
+    {
+      "name": "forge.guardrail.semantic.onnx.model-path",
+      "type": "java.lang.String",
+      "description": "Absolute path to the {@code .onnx} model file.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OnnxProperties"
+    },
+    {
+      "name": "forge.guardrail.semantic.onnx.tokenizer-path",
+      "type": "java.lang.String",
+      "description": "Absolute path to the HuggingFace {@code tokenizer.json} file.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$OnnxProperties"
+    },
+    {
+      "name": "forge.guardrail.semantic.pgvector.table-name",
+      "type": "java.lang.String",
+      "description": "Name of the pgvector table holding unsafe semantic patterns.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$PgVectorProperties",
+      "defaultValue": "guardrail_semantic_patterns"
+    },
+    {
+      "name": "forge.guardrail.semantic.pii-enabled",
+      "type": "java.lang.Boolean",
+      "description": "When {@code false} (default), PII category matches from the semantic store are suppressed — PII is already fully covered by regex in {@code PiiSanitizingValidator}. Enable only if you have seeded PII-specific obfuscation patterns that regex cannot catch.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "forge.guardrail.semantic.redis.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether the Redis embedding cache is active.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$RedisCacheProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.semantic.redis.key-prefix",
+      "type": "java.lang.String",
+      "description": "Redis key prefix. Change if you share a Redis instance across services.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$RedisCacheProperties",
+      "defaultValue": "guardrail:emb:"
+    },
+    {
+      "name": "forge.guardrail.semantic.redis.ttl-seconds",
+      "type": "java.lang.Long",
+      "description": "TTL for cached embeddings (seconds). Default 1 hour.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$RedisCacheProperties",
+      "defaultValue": 3600
+    },
+    {
+      "name": "forge.guardrail.semantic.similarity-threshold",
+      "type": "java.lang.Double",
+      "description": "Default cosine similarity cutoff when a category-specific threshold is unset. Category thresholds below override this per violation type.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "defaultValue": 0.65
+    },
+    {
+      "name": "forge.guardrail.semantic.top-k",
+      "type": "java.lang.Integer",
+      "description": "Maximum pgvector nearest-neighbour candidates per request (filtered by category threshold).",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
+      "defaultValue": 10
+    },
+    {
+      "name": "forge.guardrail.toxicity.categories.cyber-abuse",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.toxicity.categories.hate-speech",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.toxicity.categories.illegal-activities",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.toxicity.categories.self-harm",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.toxicity.categories.violence",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityCategoryProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.toxicity.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "forge.guardrail.toxicity.extra-patterns",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityProperties"
+    },
+    {
+      "name": "forge.guardrail.toxicity.hard-block",
+      "type": "java.lang.Boolean",
+      "description": "Legacy flag — when true, always HARD block regardless of score thresholds.",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "forge.guardrail.toxicity.hard-block-threshold",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityProperties",
+      "defaultValue": 0.75
+    },
+    {
+      "name": "forge.guardrail.toxicity.warn-threshold",
+      "type": "java.lang.Double",
+      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$ToxicityProperties",
+      "defaultValue": 0.4
+    }
+  ],
+  "hints": []
+}
