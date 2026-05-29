@@ -1,0 +1,25 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# Build
+target/
+build/
+
+# Environment / Secrets
+.env
+*.env
+
+# OS
+.DS_Store
+
+# Logs
+*.log
