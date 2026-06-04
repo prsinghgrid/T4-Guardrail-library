@@ -172,15 +172,11 @@
 
     <distributionManagement>
         <repository>
-            <id>local-releases</id>
-            <name>Forge Releases</name>
-            <url>http://127.0.0.1:8081/repository/guardrail-maven-releases/</url>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>
+                https://maven.pkg.github.com/prsinghgrid/T4-Guardrail-library
+            </url>
         </repository>
-
-        <snapshotRepository>
-            <id>local-snapshots</id>
-            <name>Forge Snapshots</name>
-            <url>http://127.0.0.1:8081/repository/guardrail-maven-snapshots/</url>
-        </snapshotRepository>
     </distributionManagement>
 </project>
