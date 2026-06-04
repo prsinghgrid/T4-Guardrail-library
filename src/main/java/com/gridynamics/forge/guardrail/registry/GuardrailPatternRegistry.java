@@ -130,6 +130,12 @@ public final class GuardrailPatternRegistry {
             patterns.add(cp("no\\s+transgenders?|cisgender\\s+only|no\\s+non-binary|no\\s+genderqueer", "gender_identity_exclusion", PatternCategory.BIAS, "gender", 0.95, 0.96));
             patterns.add(cp("he/him\\s+required|she/her\\s+required|no\\s+women|no\\s+men", "gender_requirement", PatternCategory.BIAS, "gender", 0.95, 0.96));
             patterns.add(cp("gender\\s+preference|boys\\s+only|girls\\s+only", "gender_preference", PatternCategory.BIAS, "gender", 0.90, 0.94));
+            // "only boys/girls/men/women" and "only want/need/hire boys/girls" — reversed order, optional verb
+            patterns.add(cp("only\\s+(?:(?:want|need|hire|seek|accept|prefer|require)\\s+)?(?:boys|girls|men|women|males?|females?)",
+                    "gender_only_standalone", PatternCategory.BIAS, "gender", 0.90, 0.93));
+            // "require/want/need only [gender]" — verb before "only", no trailing role noun required
+            patterns.add(cp("(?:require|want|need|hire|seek|accept|prefer)\\s+only\\s+(?:boys|girls|men|women|males?|females?)",
+                    "gender_verb_only", PatternCategory.BIAS, "gender", 0.92, 0.94));
             // Catch reversed word-order: "only female candidates", "only male applicants"
             patterns.add(cp("only\\s+(?:female|male|women|men|girl|boy)\\s+(?:candidates?|applicants?|employees?|professionals?|engineers?|workers?|persons?|people)",
                     "gender_exclusion_reversed", PatternCategory.BIAS, "gender", 0.95, 0.96));
@@ -163,6 +169,14 @@ public final class GuardrailPatternRegistry {
         if (isCategoryEnabled(bias.getCategories().getNationality())) {
             patterns.add(cp("indians\\s+only|no\\s+foreigners|whites\\s+only|no\\s+immigrants", "nationality_exclusion", PatternCategory.BIAS, "nationality", 0.95, 0.96));
             patterns.add(cp("native\\s+speakers\\s+only", "language_nationality", PatternCategory.BIAS, "nationality", 0.75, 0.85));
+            // "only Russian people", "only Chinese candidates", "only American employees"
+            // Suffix (ese|ian|ish|ni|an) is REQUIRED so gender words like "female" don't match.
+            patterns.add(cp("only\\s+(?:[a-zA-Z]+(?:ese|ian|ish|ni|an))\\s+(?:people|persons?|candidates?|applicants?|employees?|workers?)",
+                    "nationality_exclusive", PatternCategory.BIAS, "nationality", 0.90, 0.93));
+            // Named common nationalities — catches both "Russians only" and "only Russians"
+            patterns.add(cp("(?:russians?|chinese|americans?|indians?|pakistanis?|bangladeshis?|mexicans?|brazilians?|nigerians?|filipinos?)\\s+only"
+                            + "|only\\s+(?:russians?|chinese|americans?|indians?|pakistanis?|bangladeshis?|mexicans?|brazilians?|nigerians?|filipinos?)",
+                    "nationality_named", PatternCategory.BIAS, "nationality", 0.92, 0.95));
         }
 
         if (isCategoryEnabled(bias.getCategories().getDisability())) {
@@ -172,6 +186,15 @@ public final class GuardrailPatternRegistry {
 
         if (isCategoryEnabled(bias.getCategories().getSexuality())) {
             patterns.add(cp("heterosexual\\s+only|straight\\s+only|no\\s+lgbtq", "sexuality_exclusion", PatternCategory.BIAS, "sexuality", 0.95, 0.97));
+            // Reverse: requiring LGBTQ exclusively — also discriminatory in hiring
+            patterns.add(cp("lgbtq\\s+only|only\\s+lgbtq|lgbtq\\s+(?:candidates?|applicants?|employees?|persons?|people)",
+                    "lgbtq_only", PatternCategory.BIAS, "sexuality", 0.92, 0.94));
+            // Individual identity exclusions: "no gay employees", "no transgender people"
+            patterns.add(cp("no\\s+(?:gay|lesbian|bisexual|trans(?:gender)?|queer)\\s+(?:people|persons?|candidates?|applicants?|employees?)?",
+                    "identity_exclusion", PatternCategory.BIAS, "sexuality", 0.95, 0.97));
+            // Requiring a specific orientation: "only gay candidates", "only transgender applicants"
+            patterns.add(cp("only\\s+(?:gay|lesbian|bisexual|trans(?:gender)?|queer)\\s+(?:candidates?|applicants?|employees?|people)?",
+                    "identity_only", PatternCategory.BIAS, "sexuality", 0.92, 0.94));
         }
 
         if (isCategoryEnabled(bias.getCategories().getAge())) {

@@ -5,10 +5,12 @@ import com.gridynamics.forge.guardrail.config.GuardrailProperties;
 import com.gridynamics.forge.guardrail.model.ValidationAction;
 import com.gridynamics.forge.guardrail.model.Violation;
 import com.gridynamics.forge.guardrail.model.ViolationSeverity;
+import com.gridynamics.forge.guardrail.registry.CategorizedPattern;
 import com.gridynamics.forge.guardrail.registry.GuardrailPatternRegistry;
 import com.gridynamics.forge.guardrail.registry.PatternCategory;
 import com.gridynamics.forge.guardrail.util.FuzzyMatchUtil;
 import com.gridynamics.forge.guardrail.util.PatternMatchUtil;
+import com.gridynamics.forge.guardrail.util.TextNormalizationUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,13 +53,30 @@ public class BiasValidator implements GuardrailValidator {
 
     @Override
     public List<Violation> validate(String text, GuardrailContext context) {
-        List<PatternMatchUtil.PatternHit> hits = PatternMatchUtil.matchCategorized(
-                text,
-                patternRegistry.getPatterns(PatternCategory.BIAS)
-        );
+        List<CategorizedPattern> biasPatterns = patternRegistry.getPatterns(PatternCategory.BIAS);
+
+        // First pass: standard normalization (preserves digits — needed for age patterns like "under 30").
+        String stdNormalized = TextNormalizationUtil.normalizeAll(text);
+        List<PatternMatchUtil.PatternHit> hits = new ArrayList<>(
+                PatternMatchUtil.matchCategorizedOnText(stdNormalized, biasPatterns));
+
+        // Second pass: leetspeak-decoded normalization (catches obfuscated terms like "0nly b0ys").
+        // We run only this pass and merge any NEW label hits not already captured above.
+        String leetNormalized = TextNormalizationUtil.normalizeAllWithLeetspeak(text);
+        if (!leetNormalized.equals(stdNormalized)) {
+            Set<String> seenLabels = new LinkedHashSet<>();
+            for (PatternMatchUtil.PatternHit h : hits) {
+                seenLabels.add(h.definition().label());
+            }
+            for (PatternMatchUtil.PatternHit h : PatternMatchUtil.matchCategorizedOnText(leetNormalized, biasPatterns)) {
+                if (seenLabels.add(h.definition().label())) {
+                    hits.add(h);
+                }
+            }
+        }
 
         if (props.getFuzzy().isEnabled()) {
-            hits = mergeFuzzyHits(hits, text);
+            hits = mergeFuzzyHits(hits, stdNormalized);
         }
 
         if (hits.isEmpty()) {

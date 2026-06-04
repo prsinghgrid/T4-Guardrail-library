@@ -101,7 +101,6 @@ public final class GuardrailStartupValidator implements InitializingBean {
         if (!semantic.isEnabled()) {
             return;
         }
-        validateThreshold(errors, "semantic.similarity-threshold", semantic.getSimilarityThreshold());
         if (semantic.getTopK() <= 0) {
             errors.add("semantic.top-k must be > 0");
         }

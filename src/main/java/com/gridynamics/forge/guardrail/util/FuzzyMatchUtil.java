@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
  */
 public final class FuzzyMatchUtil {
 
-    private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^a-z0-9]+", Pattern.CASE_INSENSITIVE);
-
     private FuzzyMatchUtil() {
     }
 

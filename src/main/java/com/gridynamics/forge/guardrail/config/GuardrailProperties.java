@@ -229,19 +229,8 @@ public class GuardrailProperties {
          * Set {@code false} in production if semantic coverage is mandatory.
          */
         private boolean failOpen = true;
-        /**
-         * Default cosine similarity cutoff when a category-specific threshold is unset.
-         * Category thresholds below override this per violation type.
-         */
-        private double similarityThreshold = 0.65;
         /** Maximum pgvector nearest-neighbour candidates per request (filtered by category threshold). */
         private int topK = 10;
-        /**
-         * When {@code false} (default), PII category matches from the semantic store are
-         * suppressed — PII is already fully covered by regex in {@code PiiSanitizingValidator}.
-         * Enable only if you have seeded PII-specific obfuscation patterns that regex cannot catch.
-         */
-        private boolean piiEnabled = false;
         private CategoryThresholdProperties categoryThresholds = new CategoryThresholdProperties();
 
         private OnnxProperties onnx = new OnnxProperties();
@@ -252,12 +241,8 @@ public class GuardrailProperties {
         public void setEnabled(boolean v) { this.enabled = v; }
         public boolean isFailOpen() { return failOpen; }
         public void setFailOpen(boolean v) { this.failOpen = v; }
-        public double getSimilarityThreshold() { return similarityThreshold; }
-        public void setSimilarityThreshold(double v) { this.similarityThreshold = v; }
         public int getTopK() { return topK; }
         public void setTopK(int v) { this.topK = v; }
-        public boolean isPiiEnabled() { return piiEnabled; }
-        public void setPiiEnabled(boolean v) { this.piiEnabled = v; }
         public CategoryThresholdProperties getCategoryThresholds() { return categoryThresholds; }
         public void setCategoryThresholds(CategoryThresholdProperties v) { this.categoryThresholds = v; }
         public OnnxProperties getOnnx() { return onnx; }

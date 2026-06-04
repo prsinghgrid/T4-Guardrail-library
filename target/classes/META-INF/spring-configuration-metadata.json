@@ -332,13 +332,6 @@
       "defaultValue": "guardrail_semantic_patterns"
     },
     {
-      "name": "forge.guardrail.semantic.pii-enabled",
-      "type": "java.lang.Boolean",
-      "description": "When {@code false} (default), PII category matches from the semantic store are suppressed — PII is already fully covered by regex in {@code PiiSanitizingValidator}. Enable only if you have seeded PII-specific obfuscation patterns that regex cannot catch.",
-      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
-      "defaultValue": false
-    },
-    {
       "name": "forge.guardrail.semantic.redis.enabled",
       "type": "java.lang.Boolean",
       "description": "Whether the Redis embedding cache is active.",
@@ -358,13 +351,6 @@
       "description": "TTL for cached embeddings (seconds). Default 1 hour.",
       "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$RedisCacheProperties",
       "defaultValue": 3600
-    },
-    {
-      "name": "forge.guardrail.semantic.similarity-threshold",
-      "type": "java.lang.Double",
-      "description": "Default cosine similarity cutoff when a category-specific threshold is unset. Category thresholds below override this per violation type.",
-      "sourceType": "com.gridynamics.forge.guardrail.config.GuardrailProperties$SemanticProperties",
-      "defaultValue": 0.65
     },
     {
       "name": "forge.guardrail.semantic.top-k",

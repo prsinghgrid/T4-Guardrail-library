@@ -25,7 +25,6 @@ class SemanticValidatorTest {
     void setUp() {
         props = new GuardrailProperties();
         props.getSemantic().setTopK(10);
-        props.getSemantic().setSimilarityThreshold(0.65);
         props.getSemantic().getCategoryThresholds().setBias(0.65);
         props.getSemantic().getCategoryThresholds().setToxicity(0.78);
 

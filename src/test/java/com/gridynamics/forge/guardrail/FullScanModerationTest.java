@@ -94,7 +94,7 @@ class FullScanModerationTest {
         var report = ModerationReportFormatter.format(raw, java.time.Duration.ofMillis(4));
         assertThat(report.violationCode()).isEqualTo("MULTIPLE_POLICY_VIOLATIONS");
         assertThat(report.violations().get(0).category()).isEqualTo("JAILBREAK");
-        assertThat(report.violations().get(1).category()).isEqualTo("DISCRIMINATION");
+        assertThat(report.violations().get(1).category()).isEqualTo("GENDER_BIAS");
         assertThat(report.riskScore()).isEqualTo(95);
     }
 }

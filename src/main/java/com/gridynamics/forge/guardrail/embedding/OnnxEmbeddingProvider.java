@@ -10,11 +10,14 @@ import com.gridynamics.forge.guardrail.util.EmbeddingNormalizationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.LongBuffer;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Fully local embedding provider using ONNX Runtime Java + bge-small-en.
@@ -42,6 +45,9 @@ public final class OnnxEmbeddingProvider implements EmbeddingProvider, AutoClose
     private final HuggingFaceTokenizer tokenizer;
     private final int maxTokens;
     private volatile boolean available = true;
+    // #region agent log
+    private final AtomicBoolean firstEmbedLogged = new AtomicBoolean(false);
+    // #endregion
 
     public OnnxEmbeddingProvider(String modelPath, String tokenizerPath,
                                   int maxTokens, int intraOpThreads) throws OrtException, IOException {
@@ -57,6 +63,15 @@ public final class OnnxEmbeddingProvider implements EmbeddingProvider, AutoClose
 
         log.info("[GUARDRAIL] ONNX model loaded successfully");
         log.info("[GUARDRAIL] Tokenizer loaded successfully — model={} dims={}", modelPath, DIMENSIONS);
+        // #region agent log
+        try {
+            var outputNames = session.getOutputNames();
+            debugLog("OnnxEmbeddingProvider.java:constructor", "A/B",
+                    "model_output_count=" + outputNames.size() + " output_names=" + outputNames + " model_path=" + modelPath);
+        } catch (Exception ex) {
+            debugLog("OnnxEmbeddingProvider.java:constructor", "A/B", "failed_to_read_output_names=" + ex.getMessage());
+        }
+        // #endregion
     }
 
     @Override
@@ -87,7 +102,19 @@ public final class OnnxEmbeddingProvider implements EmbeddingProvider, AutoClose
                     OnnxTensor.createTensor(env, LongBuffer.wrap(tokenTypeIds), shape));
 
             try (OrtSession.Result result = session.run(inputs)) {
-                float[][][] lastHiddenState = (float[][][]) result.get(0).getValue();
+                Object rawOutput = result.get(0).getValue();
+                // #region agent log
+                if (firstEmbedLogged.compareAndSet(false, true)) {
+                    String outputType = rawOutput == null ? "null" : rawOutput.getClass().getSimpleName();
+                    int[] dims = rawOutput instanceof float[][][] lhs ? new int[]{lhs.length, lhs[0].length, lhs[0][0].length}
+                            : rawOutput instanceof float[][] lhs2 ? new int[]{lhs2.length, lhs2[0].length}
+                            : new int[]{-1};
+                    debugLog("OnnxEmbeddingProvider.java:embed", "A",
+                            "output_type=" + outputType + " output_dims=" + java.util.Arrays.toString(dims)
+                            + " token_count=" + inputIds.length + " truncated=" + (inputIds.length == maxTokens));
+                }
+                // #endregion
+                float[][][] lastHiddenState = (float[][][]) rawOutput;
                 float[] pooled = meanPool(lastHiddenState[0], attentionMask);
                 return EmbeddingNormalizationUtil.normalize(pooled);
             } finally {
@@ -121,6 +148,19 @@ public final class OnnxEmbeddingProvider implements EmbeddingProvider, AutoClose
         available = false;
         try { session.close(); } catch (Exception ignored) {}
     }
+
+    // #region agent log
+    private static void debugLog(String location, String hypothesisId, String message) {
+        String logPath = "/Users/prsingh/Desktop/forge-ai/.cursor/debug-a36924.log";
+        long ts = System.currentTimeMillis();
+        String entry = "{\"sessionId\":\"a36924\",\"timestamp\":" + ts
+                + ",\"location\":\"" + location + "\",\"hypothesisId\":\"" + hypothesisId
+                + "\",\"message\":\"" + message.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}\n";
+        try (PrintWriter pw = new PrintWriter(new FileWriter(logPath, true))) {
+            pw.print(entry);
+        } catch (IOException ignored) {}
+    }
+    // #endregion
 
     // ── Internal ────────────────────────────────────────────────────────────
 

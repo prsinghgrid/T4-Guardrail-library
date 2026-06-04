@@ -5,10 +5,10 @@ import com.gridynamics.forge.guardrail.config.GuardrailProperties;
 import com.gridynamics.forge.guardrail.model.ValidationAction;
 import com.gridynamics.forge.guardrail.model.Violation;
 import com.gridynamics.forge.guardrail.model.ViolationSeverity;
+import com.gridynamics.forge.guardrail.registry.CategorizedPattern;
 import com.gridynamics.forge.guardrail.registry.GuardrailPatternRegistry;
 import com.gridynamics.forge.guardrail.registry.PatternCategory;
 import com.gridynamics.forge.guardrail.util.PatternMatchUtil;
-import com.gridynamics.forge.guardrail.util.TextNormalizationUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -20,6 +20,11 @@ import java.util.Set;
  *
  * <p>Separate from {@link OutputContentValidator} which scans LLM responses only.
  * Emits a single consolidated {@code SECRET_DETECTED} violation per scan.
+ *
+ * <p>Secret patterns rely on exact character runs (e.g. {@code -----BEGIN},
+ * {@code AKIA[0-9A-Z]{16}}). Text is intentionally matched against the <em>raw</em>
+ * input rather than normalised text to avoid {@code normalizeRepeatedCharacters}
+ * collapsing credential sentinels like {@code -----} to {@code --}.
  */
 public class InputSecretValidator implements GuardrailValidator {
 
@@ -52,27 +57,25 @@ public class InputSecretValidator implements GuardrailValidator {
             return List.of();
         }
 
-        String normalized = TextNormalizationUtil.normalizeAll(text);
-        List<PatternMatchUtil.PatternHit> hits = PatternMatchUtil.matchCategorized(
-                normalized,
-                patternRegistry.getPatterns(PatternCategory.SECRETS)
-        );
-
-        if (hits.isEmpty()) {
-            return List.of();
-        }
-
+        // Match directly against the raw text. Secret patterns depend on exact
+        // repeated-character runs (e.g. "-----BEGIN", "AKIA0000…") that
+        // normalizeRepeatedCharacters would collapse and break.
+        List<CategorizedPattern> secretPatterns = patternRegistry.getPatterns(PatternCategory.SECRETS);
         Set<String> secretLabels = new LinkedHashSet<>();
         double maxScore = 0.0;
         double maxConfidence = 0.0;
 
-        for (PatternMatchUtil.PatternHit hit : hits) {
-            if (hit.definition().confidence() < props.getInputSecrets().getConfidenceThreshold()) {
+        for (CategorizedPattern pattern : secretPatterns) {
+            List<String> matches = PatternMatchUtil.findMatches(pattern.pattern(), text);
+            if (matches.isEmpty()) {
                 continue;
             }
-            secretLabels.add(toDisplayLabel(hit.definition().label()));
-            maxScore = Math.max(maxScore, hit.definition().weight());
-            maxConfidence = Math.max(maxConfidence, hit.definition().confidence());
+            if (pattern.confidence() < props.getInputSecrets().getConfidenceThreshold()) {
+                continue;
+            }
+            secretLabels.add(toDisplayLabel(pattern.label()));
+            maxScore = Math.max(maxScore, pattern.weight());
+            maxConfidence = Math.max(maxConfidence, pattern.confidence());
         }
 
         if (secretLabels.isEmpty()) {

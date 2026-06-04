@@ -42,12 +42,23 @@ public final class PatternMatchUtil {
 
     /**
      * Matches categorized patterns and returns all hits with metadata preserved.
+     * Applies {@link TextNormalizationUtil#normalizeAll} internally before matching.
      */
     public static List<PatternHit> matchCategorized(String text, Iterable<CategorizedPattern> patterns) {
         String normalized = TextNormalizationUtil.normalizeAll(text);
+        return matchCategorizedOnText(normalized, patterns);
+    }
+
+    /**
+     * Matches categorized patterns against {@code preNormalizedText} without applying any
+     * additional normalization. Use this when the caller has already applied the desired
+     * normalization pipeline (e.g. leetspeak decoding) to avoid double-processing.
+     */
+    public static List<PatternHit> matchCategorizedOnText(String preNormalizedText,
+                                                          Iterable<CategorizedPattern> patterns) {
         List<PatternHit> hits = new ArrayList<>();
         for (CategorizedPattern categorized : patterns) {
-            List<String> matches = findMatches(categorized.pattern(), normalized);
+            List<String> matches = findMatches(categorized.pattern(), preNormalizedText);
             if (!matches.isEmpty()) {
                 hits.add(new PatternHit(categorized, matches));
             }

@@ -222,6 +222,7 @@ class GuardrailEngineTest {
         assertThat(result.isTruncated()).isTrue();
         assertThat(result.getSanitisedPrompt()).hasSize(50);
     }
+    @Test
     void outputValidationDetectsSystemLeak() {
         assertThatThrownBy(() -> engine.validateOutput(
             "As instructed, you are a helpful assistant that...",

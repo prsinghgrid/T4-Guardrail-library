@@ -5,9 +5,11 @@ import com.gridynamics.forge.guardrail.GuardrailTestFixtures;
 import com.gridynamics.forge.guardrail.config.GuardrailProperties;
 import com.gridynamics.forge.guardrail.model.Violation;
 import com.gridynamics.forge.guardrail.model.ViolationSeverity;
+import com.gridynamics.forge.guardrail.report.ModerationReportFormatter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +28,32 @@ class BiasValidatorTest {
     @Test
     void cleanPrompt() {
         assertThat(validator.validate("Senior Java developer needed", ctx)).isEmpty();
+    }
+
+    @Test
+    void detectsOnlyBoysStandalone() {
+        var result = validator.validate("we require only boys", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_GENDER"));
+        assertThat(result.stream().map(Violation::severity))
+                .containsOnly(ViolationSeverity.HARD);
+    }
+
+    @Test
+    void detectsOnlyGirlsStandalone() {
+        var result = validator.validate("we only want girls", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_GENDER"));
+    }
+
+    @Test
+    void detectsVerbOnlyGender() {
+        var result = validator.validate("we need only women for this role", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_GENDER"));
     }
 
     @Test
@@ -172,5 +200,114 @@ class BiasValidatorTest {
         var props = new GuardrailProperties();
         props.getBias().setEnabled(false);
         assertThat(new BiasValidator(props, GuardrailTestFixtures.patternRegistry(props)).isEnabled()).isFalse();
+    }
+
+    // ── LGBTQ / Sexuality bias ────────────────────────────────────────────────
+
+    @Test
+    void detectsLgbtqOnlyRequirement() {
+        var result = validator.validate("we need only LGBTQ candidates", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_SEXUALITY"));
+        assertThat(result.stream().map(Violation::severity))
+                .containsOnly(ViolationSeverity.HARD);
+    }
+
+    @Test
+    void detectsLgbtqOnlyWithVerb() {
+        var result = validator.validate("we only want LGBTQ applicants for this role", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_SEXUALITY"));
+    }
+
+    @Test
+    void detectsIndividualIdentityExclusion() {
+        var result = validator.validate("no transgender employees allowed on this project", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_SEXUALITY"));
+    }
+
+    @Test
+    void detectsNoGayPeopleExclusion() {
+        var result = validator.validate("no gay people should be considered for the role", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_SEXUALITY"));
+    }
+
+    @Test
+    void cleanLgbtqInclusionStatement() {
+        // "LGBTQ-friendly" workplace statement must NOT trigger a bias violation
+        assertThat(validator.validate("we are an LGBTQ-friendly workplace", ctx)).isEmpty();
+        assertThat(validator.validate("we celebrate LGBTQ pride at our company", ctx)).isEmpty();
+    }
+
+    // ── Nationality bias ──────────────────────────────────────────────────────
+
+    @Test
+    void detectsNationalityOnlyRussian() {
+        var result = validator.validate("we need only Russian people for this role", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_NATIONALITY"));
+        assertThat(result.stream().map(Violation::severity))
+                .containsOnly(ViolationSeverity.HARD);
+    }
+
+    @Test
+    void detectsNationalityOnlyPhrasing() {
+        var result = validator.validate("only Chinese candidates are welcome to apply", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_NATIONALITY"));
+    }
+
+    @Test
+    void detectsNamedNationalitySuffix() {
+        var result = validator.validate("Indians only need apply for this position", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_NATIONALITY"));
+    }
+
+    // ── Category mapping assertions (via ModerationReportFormatter) ───────────
+
+    @Test
+    void nationalityViolationMapsToNationalityBiasCategory() {
+        var violations = validator.validate("we need only Russian people", ctx);
+        assertThat(violations).isNotEmpty();
+
+        var report = ModerationReportFormatter.format(violations, Duration.ofMillis(10));
+        assertThat(report.violations())
+                .filteredOn(dto -> dto.code().startsWith("BIAS_NATIONALITY"))
+                .isNotEmpty()
+                .allMatch(dto -> "NATIONALITY_BIAS".equals(dto.category()));
+    }
+
+    @Test
+    void genderViolationMapsToGenderBiasCategory() {
+        var violations = validator.validate("male only candidates required", ctx);
+        assertThat(violations).isNotEmpty();
+
+        var report = ModerationReportFormatter.format(violations, Duration.ofMillis(10));
+        assertThat(report.violations())
+                .filteredOn(dto -> dto.code().startsWith("BIAS_GENDER"))
+                .isNotEmpty()
+                .allMatch(dto -> "GENDER_BIAS".equals(dto.category()));
+    }
+
+    @Test
+    void sexualityViolationMapsToSexualityBiasCategory() {
+        var violations = validator.validate("no lgbtq candidates please", ctx);
+        assertThat(violations).isNotEmpty();
+
+        var report = ModerationReportFormatter.format(violations, Duration.ofMillis(10));
+        assertThat(report.violations())
+                .filteredOn(dto -> dto.code().startsWith("BIAS_SEXUALITY"))
+                .isNotEmpty()
+                .allMatch(dto -> "SEXUALITY_BIAS".equals(dto.category()));
     }
 }

@@ -93,10 +93,7 @@ public final class ModerationReportFormatter {
     }
 
     private static String mapCode(String code) {
-        return switch (code) {
-            case "INJECTION_BLOCKED" -> "PROMPT_INJECTION_BLOCKED";
-            default -> code;
-        };
+        return code;
     }
 
     private static String mapDetector(String detector) {
@@ -106,7 +103,15 @@ public final class ModerationReportFormatter {
     private static String mapCategory(Violation v) {
         if (v.category() != null && !v.category().isBlank()) {
             return switch (v.category().toLowerCase()) {
-                case "gender", "caste", "religion", "nationality", "disability", "sexuality", "age", "education" -> "DISCRIMINATION";
+                case "gender"      -> "GENDER_BIAS";
+                case "nationality" -> "NATIONALITY_BIAS";
+                case "religion"    -> "RELIGION_BIAS";
+                case "caste"       -> "CASTE_BIAS";
+                case "age"         -> "AGE_BIAS";
+                case "disability"  -> "DISABILITY_BIAS";
+                case "sexuality"   -> "SEXUALITY_BIAS";
+                case "education"   -> "EDUCATION_BIAS";
+                case "appearance", "marital_status", "custom" -> "DISCRIMINATION";
                 case "jailbreak", "override", "exfiltration", "encoding" -> "JAILBREAK";
                 case "cyber_abuse", "violence", "hate_speech", "illegal_activities", "self_harm" -> "TOXICITY";
                 case "secrets", "aws", "auth", "openai", "crypto", "database" -> "SECRETS";
