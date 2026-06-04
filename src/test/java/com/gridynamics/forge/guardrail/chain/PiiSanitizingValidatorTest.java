@@ -126,6 +126,79 @@ class PiiSanitizingValidatorTest {
     }
 
     @Test
+    void stripsPhoneWithSpaceSeparators() {
+        // "91 52 34 25 65" = 10-digit Indian mobile number written with 2-digit spacing
+        var s = validator.sanitise("phone number is : 91 52 34 25 65");
+        assertThat(s).contains("[PHONE_REDACTED]").doesNotContain("91 52 34 25 65");
+    }
+
+    @Test
+    void detectsPhoneWithSpaceSeparators() {
+        var violations = validator.validate("phone number is : 91 52 34 25 65", ctx);
+        assertThat(violations).isNotEmpty();
+        assertThat(violations.get(0).matches()).contains("PHONE_IN");
+    }
+
+    @Test
+    void stripsCreditCardWithSpaces() {
+        // 9152-prefix (RuPay / generic 9xxx) — 16-digit card in XXXX XXXX XXXX XXXX format
+        var s = validator.sanitise("card number is 9152 4256 5464 5758");
+        assertThat(s).contains("[CARD_REDACTED]").doesNotContain("9152");
+    }
+
+    @Test
+    void detectsCreditCardWithSpacesNotAadhaar() {
+        var violations = validator.validate("card number is 9152 4256 5464 5758", ctx);
+        assertThat(violations).isNotEmpty();
+        var types = violations.get(0).matches();
+        assertThat(types).contains("CREDIT_CARD");
+        assertThat(types).doesNotContain("AADHAAR");
+    }
+
+    @Test
+    void stripsCreditCardWithHyphens() {
+        var s = validator.sanitise("card: 4111-1111-1111-1111");
+        assertThat(s).contains("[CARD_REDACTED]").doesNotContain("4111");
+    }
+
+    @Test
+    void stripsMaestroRuPayCard() {
+        // 6788-prefix covers Maestro / RuPay (67xx) cards — previously fell through to PHONE_INTL
+        var s = validator.sanitise("my phone number is : 6788 9980 9880 7979");
+        assertThat(s).isEqualTo("my phone number is : [CARD_REDACTED]");
+    }
+
+    @Test
+    void detectsMaestroRuPayCardNotPhone() {
+        var violations = validator.validate("my phone number is : 6788 9980 9880 7979", ctx);
+        assertThat(violations).isNotEmpty();
+        var types = violations.get(0).matches();
+        assertThat(types).contains("CREDIT_CARD");
+        assertThat(types).doesNotContain("PHONE_IN");
+        assertThat(types).doesNotContain("PHONE_INTL");
+        assertThat(types).doesNotContain("AADHAAR");
+    }
+
+    @Test
+    void doesNotDetectAadhaarInsideCreditCard() {
+        // The first 12 digits of "9152 4256 5464 5758" look like an Aadhaar —
+        // the lookahead guard must prevent a false Aadhaar detection.
+        var violations = validator.validate("9152 4256 5464 5758", ctx);
+        assertThat(violations).isNotEmpty();
+        assertThat(violations.get(0).matches()).doesNotContain("AADHAAR");
+    }
+
+    @Test
+    void creditCardDetectionSuppressesPhoneCodetection() {
+        // Any 16-digit number in XXXX XXXX XXXX XXXX format should report CREDIT_CARD only
+        var violations = validator.validate("6011 1111 1111 1117", ctx);
+        assertThat(violations).isNotEmpty();
+        var types = violations.get(0).matches();
+        assertThat(types).contains("CREDIT_CARD");
+        assertThat(types).doesNotContain("PHONE_INTL");
+    }
+
+    @Test
     void stripsSpokenPhoneNumber() {
         String prompt = "Contact me at john.smith@company.com or call nine one zero "
                 + "five five five zero one two three.";

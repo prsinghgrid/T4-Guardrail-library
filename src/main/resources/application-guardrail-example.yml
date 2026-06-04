@@ -6,7 +6,6 @@ forge:
       enabled: ${SEMANTIC_ENABLED:true}
       fail-open: ${SEMANTIC_FAIL_OPEN:false}
 
-      similarity-threshold: ${SEMANTIC_SIMILARITY_THRESHOLD:0.65}
       top-k: ${SEMANTIC_TOP_K:10}
 
       category-thresholds:
@@ -21,21 +20,15 @@ forge:
         max-tokens: ${ONNX_MAX_TOKENS:128}
         intra-op-threads: ${ONNX_THREADS:1}
 
-      pgvector:
-        table-name: ${PGVECTOR_TABLE:guardrail_semantic_patterns}
-
+      # Optional — Redis caches per-request ONNX embeddings to avoid redundant model inference.
+      # Remove this block (or set enabled: false) if you do not have Redis.
       redis:
         enabled: ${REDIS_ENABLED:true}
         ttl-seconds: ${REDIS_TTL_SECONDS:3600}
         key-prefix: ${REDIS_KEY_PREFIX:guardrail:emb:}
 
 spring:
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-
+  # Only needed when forge.guardrail.semantic.redis.enabled=true
   data:
     redis:
       host: ${REDIS_HOST}

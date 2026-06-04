@@ -1,7 +1,7 @@
 package com.gridynamics.forge.guardrail.semantic;
 
 /**
- * A single pgvector similarity hit returned by {@link PgVectorSemanticStore}.
+ * A single similarity result returned by a {@link SemanticStore}.
  *
  * @param patternText  The stored unsafe pattern text (from the DB)
  * @param description  Short human-readable label (e.g. "age bias — younger candidate preference")

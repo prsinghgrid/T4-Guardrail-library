@@ -2,8 +2,8 @@ package com.gridynamics.forge.guardrail.chain;
 
 import com.gridynamics.forge.guardrail.config.GuardrailProperties;
 import com.gridynamics.forge.guardrail.embedding.EmbeddingProvider;
-import com.gridynamics.forge.guardrail.semantic.PgVectorSemanticStore;
 import com.gridynamics.forge.guardrail.semantic.SemanticMatch;
+import com.gridynamics.forge.guardrail.semantic.SemanticStore;
 
 import java.util.List;
 
@@ -29,13 +29,9 @@ public final class SemanticValidatorTestSupport {
         }
     }
 
-    static class StubSemanticStore extends PgVectorSemanticStore {
+    static class StubSemanticStore implements SemanticStore {
         List<SemanticMatch> candidates = List.of();
         int lastTopK;
-
-        StubSemanticStore() {
-            super(null, "test");
-        }
 
         @Override
         public List<SemanticMatch> findNearest(float[] embedding, int topK) {

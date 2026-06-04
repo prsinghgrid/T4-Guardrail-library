@@ -4,8 +4,7 @@ import com.gridynamics.forge.guardrail.cache.RedisEmbeddingCache;
 import com.gridynamics.forge.guardrail.chain.SemanticValidator;
 import com.gridynamics.forge.guardrail.embedding.EmbeddingProvider;
 import com.gridynamics.forge.guardrail.embedding.OnnxEmbeddingProvider;
-import com.gridynamics.forge.guardrail.semantic.PgVectorSemanticStore;
-import com.gridynamics.forge.guardrail.semantic.SemanticPatternSeeder;
+import com.gridynamics.forge.guardrail.semantic.InMemorySemanticStore;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -16,28 +15,28 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Duration;
 
 /**
- * Semantic layer auto-configuration (ONNX + pgvector). Requires a {@link JdbcTemplate}
- * and {@code forge.guardrail.semantic.enabled=true}.
+ * Semantic layer auto-configuration (ONNX + in-memory store).
+ *
+ * <p>Requires only an ONNX model ({@code forge.guardrail.semantic.onnx.*}) and
+ * {@code forge.guardrail.semantic.enabled=true}. No database is needed — seed
+ * embeddings are computed at startup from {@code classpath:semantic/semantic_seeds.csv}
+ * and held entirely in the JVM heap.
+ *
+ * <p>Redis ({@code forge.guardrail.semantic.redis.enabled=true}) is optional and
+ * caches the per-request ONNX embedding to avoid redundant model inference.
  */
 @AutoConfiguration
-@AutoConfigureAfter({
-        DataSourceAutoConfiguration.class,
-        JdbcTemplateAutoConfiguration.class,
-        RedisAutoConfiguration.class
-})
+@AutoConfigureAfter(RedisAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "forge.guardrail.semantic", name = "enabled", havingValue = "true")
 @ConditionalOnClass(name = "ai.onnxruntime.OrtEnvironment")
 public class SemanticAutoConfiguration {
@@ -55,14 +54,9 @@ public class SemanticAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(PgVectorSemanticStore.class)
-    @ConditionalOnBean(JdbcTemplate.class)
-    public PgVectorSemanticStore pgVectorSemanticStore(JdbcTemplate jdbcTemplate,
-                                                        GuardrailProperties props) {
-        return new PgVectorSemanticStore(
-                jdbcTemplate,
-                props.getSemantic().getPgvector().getTableName()
-        );
+    @ConditionalOnMissingBean(InMemorySemanticStore.class)
+    public InMemorySemanticStore inMemorySemanticStore() {
+        return new InMemorySemanticStore();
     }
 
     @Bean
@@ -82,11 +76,11 @@ public class SemanticAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(SemanticValidator.class)
-    @ConditionalOnBean({EmbeddingProvider.class, PgVectorSemanticStore.class})
+    @ConditionalOnBean({EmbeddingProvider.class, InMemorySemanticStore.class})
     public SemanticValidator semanticValidator(
             GuardrailProperties props,
             EmbeddingProvider embeddingProvider,
-            PgVectorSemanticStore semanticStore,
+            InMemorySemanticStore semanticStore,
             ObjectProvider<RedisEmbeddingCache> redisCacheProvider) {
         return new SemanticValidator(
                 props,
@@ -97,25 +91,15 @@ public class SemanticAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(SemanticPatternSeeder.class)
-    @ConditionalOnBean({JdbcTemplate.class, EmbeddingProvider.class, PgVectorSemanticStore.class})
-    public SemanticPatternSeeder semanticPatternSeeder(JdbcTemplate jdbcTemplate,
-                                                        EmbeddingProvider embeddingProvider,
-                                                        PgVectorSemanticStore semanticStore) {
-        return new SemanticPatternSeeder(jdbcTemplate, embeddingProvider, semanticStore);
-    }
-
-    @Bean
     @ConditionalOnMissingBean(SemanticStartupInitializer.class)
-    @ConditionalOnBean({EmbeddingProvider.class, SemanticPatternSeeder.class, JdbcTemplate.class})
+    @ConditionalOnBean({EmbeddingProvider.class, InMemorySemanticStore.class})
     public SemanticStartupInitializer semanticStartupInitializer(
             GuardrailProperties props,
             EmbeddingProvider embeddingProvider,
-            SemanticPatternSeeder seeder,
-            JdbcTemplate jdbcTemplate,
+            InMemorySemanticStore semanticStore,
             ObjectProvider<StringRedisTemplate> redisTemplateProvider) {
         return new SemanticStartupInitializer(
-                props, embeddingProvider, seeder, jdbcTemplate, redisTemplateProvider);
+                props, embeddingProvider, semanticStore, redisTemplateProvider);
     }
 
     @Bean
@@ -144,13 +128,15 @@ public class SemanticAutoConfiguration {
                 org.slf4j.LoggerFactory.getLogger(SemanticAutoConfiguration.class)
                         .error("""
                                 [GUARDRAIL] semantic.enabled=true but SemanticValidator was not created. \
-                                Add spring-boot-starter-jdbc + datasource, ONNX model paths, and pgvector. \
+                                Ensure the ONNX model paths (forge.guardrail.semantic.onnx.*) are valid \
+                                and the onnxruntime JAR is on the classpath. \
                                 Paraphrased unsafe prompts will be allowed.""");
                 return;
             }
             throw new IllegalStateException(
                     "forge.guardrail.semantic.enabled=true but SemanticValidator is missing. "
-                            + "Provide JdbcTemplate (datasource), valid semantic.onnx.* paths, and pgvector.");
+                            + "Provide valid forge.guardrail.semantic.onnx.model-path and "
+                            + "forge.guardrail.semantic.onnx.tokenizer-path.");
         };
     }
 }

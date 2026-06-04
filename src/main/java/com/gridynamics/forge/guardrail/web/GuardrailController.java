@@ -4,6 +4,7 @@ import com.gridynamics.forge.guardrail.GuardrailContext;
 import com.gridynamics.forge.guardrail.GuardrailEngine;
 import com.gridynamics.forge.guardrail.GuardrailResult;
 import com.gridynamics.forge.guardrail.exception.GuardrailViolationException;
+import jakarta.validation.Valid;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -29,7 +30,7 @@ public class GuardrailController {
     }
 
     @PostMapping("${forge.guardrail.api.evaluate-path:/api/guardrail/evaluate}")
-    public ResponseEntity<GuardrailResult> evaluate(@RequestBody GuardrailEvaluateRequest request) {
+    public ResponseEntity<GuardrailResult> evaluate(@Valid @RequestBody GuardrailEvaluateRequest request) {
         var ctx = GuardrailContext.of(request.featureType(), request.teamId());
         GuardrailResult result = guardrailEngine.evaluate(request.prompt(), ctx);
         return ResponseEntity.ok(result);
@@ -40,7 +41,7 @@ public class GuardrailController {
      * {@link GuardrailExceptionHandler} when blocked.
      */
     @PostMapping("${forge.guardrail.api.process-path:/api/guardrail/process}")
-    public ResponseEntity<GuardrailResult> process(@RequestBody GuardrailEvaluateRequest request) {
+    public ResponseEntity<GuardrailResult> process(@Valid @RequestBody GuardrailEvaluateRequest request) {
         var ctx = GuardrailContext.of(request.featureType(), request.teamId());
         GuardrailResult result = guardrailEngine.process(request.prompt(), ctx);
         return ResponseEntity.ok(result);

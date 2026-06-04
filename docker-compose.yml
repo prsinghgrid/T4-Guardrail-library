@@ -3,8 +3,11 @@ version: "3.9"
 # ============================================================
 # Guardrail local dev / test stack
 #
-#   pgvector  — PostgreSQL 16 + pgvector extension (port 5432)
-#   redis     — Redis 7 for embedding cache        (port 6379)
+#   redis  — Redis 7 for optional embedding cache (port 6379)
+#
+# PostgreSQL / pgvector is no longer required. Seed embeddings
+# are computed at startup from classpath:semantic/semantic_seeds.csv
+# and held entirely in the JVM heap.
 #
 # Usage:
 #   docker compose up -d
@@ -13,27 +16,6 @@ version: "3.9"
 # ============================================================
 
 services:
-
-  pgvector:
-    image: pgvector/pgvector:pg16          # official pgvector image
-    container_name: guardrail-pgvector
-    restart: unless-stopped
-    environment:
-        POSTGRES_DB: ${POSTGRES_DB}
-        POSTGRES_USER: ${POSTGRES_USER}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5433:5432"
-    volumes:
-      - pgvector_data:/var/lib/postgresql/data
-      # Auto-run on first container start (alphabetical order → schema before seed)
-      - ./src/main/resources/db/01_semantic_schema.sql:/docker-entrypoint-initdb.d/01_semantic_schema.sql:ro
-      - ./src/main/resources/db/02_semantic_seed.sql:/docker-entrypoint-initdb.d/02_semantic_seed.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U guardrail -d guardrail_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -51,5 +33,4 @@ services:
       retries: 5
 
 volumes:
-  pgvector_data:
   redis_data:

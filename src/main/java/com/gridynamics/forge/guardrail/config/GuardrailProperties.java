@@ -123,6 +123,7 @@ public class GuardrailProperties {
         private boolean religion = true;
         private boolean caste = true;
         private boolean nationality = true;
+        private boolean race = true;
         private boolean disability = true;
         private boolean sexuality = true;
         private boolean age = true;
@@ -136,6 +137,8 @@ public class GuardrailProperties {
         public void setCaste(boolean v) { this.caste = v; }
         public boolean getNationality() { return nationality; }
         public void setNationality(boolean v) { this.nationality = v; }
+        public boolean getRace() { return race; }
+        public void setRace(boolean v) { this.race = v; }
         public boolean getDisability() { return disability; }
         public void setDisability(boolean v) { this.disability = v; }
         public boolean getSexuality() { return sexuality; }
@@ -218,23 +221,23 @@ public class GuardrailProperties {
     /**
      * Top-level switch for the semantic validation layer.
      * Disabled by default — enable by setting {@code forge.guardrail.semantic.enabled=true}
-     * and providing an ONNX model, pgvector table, and (optionally) Redis.
+     * and providing an ONNX model path. No database is required; seed embeddings are
+     * computed at startup and held entirely in memory.
      */
     public static class SemanticProperties {
         /** Master switch. Semantic validation is opt-in. */
         private boolean enabled = false;
         /**
-         * When {@code true} (default), any ONNX/DB failure is logged and the
-         * validator returns no violations instead of throwing.
+         * When {@code true} (default), any ONNX failure is logged and the validator
+         * returns no violations instead of throwing.
          * Set {@code false} in production if semantic coverage is mandatory.
          */
         private boolean failOpen = true;
-        /** Maximum pgvector nearest-neighbour candidates per request (filtered by category threshold). */
+        /** Number of nearest-neighbour candidates to retrieve per request (filtered by per-category threshold). */
         private int topK = 10;
         private CategoryThresholdProperties categoryThresholds = new CategoryThresholdProperties();
 
         private OnnxProperties onnx = new OnnxProperties();
-        private PgVectorProperties pgvector = new PgVectorProperties();
         private RedisCacheProperties redis = new RedisCacheProperties();
 
         public boolean isEnabled() { return enabled; }
@@ -247,8 +250,6 @@ public class GuardrailProperties {
         public void setCategoryThresholds(CategoryThresholdProperties v) { this.categoryThresholds = v; }
         public OnnxProperties getOnnx() { return onnx; }
         public void setOnnx(OnnxProperties v) { this.onnx = v; }
-        public PgVectorProperties getPgvector() { return pgvector; }
-        public void setPgvector(PgVectorProperties v) { this.pgvector = v; }
         public RedisCacheProperties getRedis() { return redis; }
         public void setRedis(RedisCacheProperties v) { this.redis = v; }
 
@@ -302,15 +303,6 @@ public class GuardrailProperties {
         public void setMaxTokens(int v) { this.maxTokens = v; }
         public int getIntraOpThreads() { return intraOpThreads; }
         public void setIntraOpThreads(int v) { this.intraOpThreads = v; }
-    }
-
-    /** pgvector table settings. */
-    public static class PgVectorProperties {
-        /** Name of the pgvector table holding unsafe semantic patterns. */
-        private String tableName = "guardrail_semantic_patterns";
-
-        public String getTableName() { return tableName; }
-        public void setTableName(String v) { this.tableName = v; }
     }
 
     /** Redis embedding cache settings. */

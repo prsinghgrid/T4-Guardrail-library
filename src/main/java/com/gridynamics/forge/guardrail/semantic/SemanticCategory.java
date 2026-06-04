@@ -1,13 +1,12 @@
 package com.gridynamics.forge.guardrail.semantic;
 
 /**
- * Semantic violation categories stored in pgvector alongside each unsafe pattern.
- *
- * <p>Maps to the {@code category} column of {@code guardrail_semantic_patterns}.
+ * Semantic violation categories. Maps to the {@code category} column in
+ * {@code classpath:semantic/semantic_seeds.csv} and held in {@link InMemorySemanticStore}.
  */
 public enum SemanticCategory {
 
-    /** Age, gender, caste, religion, disability, nationality, education bias. */
+    /** Age, gender, caste, religion, race, disability, nationality, education bias. */
     BIAS,
 
     /** Hate speech, violence, self-harm, cyber abuse, illegal incitement. */

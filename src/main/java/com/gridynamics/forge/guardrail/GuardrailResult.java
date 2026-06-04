@@ -23,6 +23,8 @@ public final class GuardrailResult {
     @JsonProperty private final boolean biasBlocked;
     @JsonProperty private final boolean injectionBlocked;
     @JsonProperty private final boolean toxicityFlagged;
+    @JsonProperty private final boolean semanticEnabled;
+    @JsonProperty private final boolean semanticActive;
     @JsonProperty private final boolean truncated;
     @JsonProperty private final int originalLength;
     @JsonProperty private final int sanitisedLength;
@@ -39,6 +41,8 @@ public final class GuardrailResult {
         this.biasBlocked       = b.biasBlocked;
         this.injectionBlocked  = b.injectionBlocked;
         this.toxicityFlagged   = b.toxicityFlagged;
+        this.semanticEnabled   = b.semanticEnabled;
+        this.semanticActive    = b.semanticActive;
         this.truncated         = b.truncated;
         this.originalLength    = b.originalLength;
         this.sanitisedLength   = b.sanitisedLength;
@@ -55,6 +59,8 @@ public final class GuardrailResult {
     public boolean isBiasBlocked()       { return biasBlocked; }
     public boolean isInjectionBlocked()  { return injectionBlocked; }
     public boolean isToxicityFlagged()   { return toxicityFlagged; }
+    public boolean isSemanticEnabled()   { return semanticEnabled; }
+    public boolean isSemanticActive()    { return semanticActive; }
     public boolean isTruncated()         { return truncated; }
     public int getOriginalLength()       { return originalLength; }
     public int getSanitisedLength()      { return sanitisedLength; }
@@ -81,6 +87,8 @@ public final class GuardrailResult {
         private boolean biasBlocked;
         private boolean injectionBlocked;
         private boolean toxicityFlagged;
+        private boolean semanticEnabled;
+        private boolean semanticActive;
         private boolean truncated;
         private int originalLength;
         private int sanitisedLength;
@@ -96,6 +104,8 @@ public final class GuardrailResult {
         public Builder biasBlocked(boolean v)       { this.biasBlocked = v; return this; }
         public Builder injectionBlocked(boolean v)  { this.injectionBlocked = v; return this; }
         public Builder toxicityFlagged(boolean v)   { this.toxicityFlagged = v; return this; }
+        public Builder semanticEnabled(boolean v)   { this.semanticEnabled = v; return this; }
+        public Builder semanticActive(boolean v)    { this.semanticActive = v; return this; }
         public Builder truncated(boolean v)         { this.truncated = v; return this; }
         public Builder originalLength(int v)        { this.originalLength = v; return this; }
         public Builder sanitisedLength(int v)       { this.sanitisedLength = v; return this; }

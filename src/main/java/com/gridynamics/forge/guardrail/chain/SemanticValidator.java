@@ -7,15 +7,12 @@ import com.gridynamics.forge.guardrail.embedding.EmbeddingProvider;
 import com.gridynamics.forge.guardrail.model.ValidationAction;
 import com.gridynamics.forge.guardrail.model.Violation;
 import com.gridynamics.forge.guardrail.model.ViolationSeverity;
-import com.gridynamics.forge.guardrail.semantic.PgVectorSemanticStore;
 import com.gridynamics.forge.guardrail.semantic.SemanticCategory;
 import com.gridynamics.forge.guardrail.semantic.SemanticMatch;
+import com.gridynamics.forge.guardrail.semantic.SemanticStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,12 +24,12 @@ public final class SemanticValidator implements GuardrailValidator {
 
     private final GuardrailProperties props;
     private final EmbeddingProvider embeddingProvider;
-    private final PgVectorSemanticStore semanticStore;
+    private final SemanticStore semanticStore;
     private final RedisEmbeddingCache redisCache;
 
     public SemanticValidator(GuardrailProperties props,
                               EmbeddingProvider embeddingProvider,
-                              PgVectorSemanticStore semanticStore,
+                              SemanticStore semanticStore,
                               RedisEmbeddingCache redisCache) {
         this.props = props;
         this.embeddingProvider = embeddingProvider;
@@ -71,22 +68,21 @@ public final class SemanticValidator implements GuardrailValidator {
                     resolveEmbedding(text), semantic.getTopK());
             List<Violation> violations = new ArrayList<>();
 
-            // #region agent log
-            StringBuilder scoreLog = new StringBuilder("topK_scores=[");
-            for (int i = 0; i < candidates.size(); i++) {
-                SemanticMatch m = candidates.get(i);
-                double th = semantic.thresholdFor(m.category());
-                scoreLog.append("{sim=").append(fmt(m.similarity()))
-                        .append(",threshold=").append(fmt(th))
-                        .append(",cat=").append(m.category())
-                        .append(",blocked=").append(m.similarity() >= th).append("}");
-                if (i < candidates.size() - 1) scoreLog.append(",");
+            if (log.isDebugEnabled()) {
+                StringBuilder scoreLog = new StringBuilder("[SemanticValidator] topK_scores=[");
+                for (int i = 0; i < candidates.size(); i++) {
+                    SemanticMatch m = candidates.get(i);
+                    double th = semantic.thresholdFor(m.category());
+                    scoreLog.append("{sim=").append(fmt(m.similarity()))
+                            .append(",threshold=").append(fmt(th))
+                            .append(",cat=").append(m.category())
+                            .append(",blocked=").append(m.similarity() >= th).append("}");
+                    if (i < candidates.size() - 1) scoreLog.append(",");
+                }
+                scoreLog.append("] input_snippet=")
+                        .append(text.length() > 80 ? text.substring(0, 80) + "..." : text);
+                log.debug("{}", scoreLog);
             }
-            scoreLog.append("]");
-            debugLog("SemanticValidator.java:validate", "B/D/E",
-                    "candidate_count=" + candidates.size() + " " + scoreLog
-                    + " input_snippet=" + (text.length() > 80 ? text.substring(0, 80) + "..." : text));
-            // #endregion
 
             for (SemanticMatch match : candidates) {
                 double threshold = semantic.thresholdFor(match.category());
@@ -107,11 +103,8 @@ public final class SemanticValidator implements GuardrailValidator {
             return violations;
 
         } catch (Exception ex) {
-            // #region agent log
-            debugLog("SemanticValidator.java:validate_exception", "A",
-                    "exception_type=" + ex.getClass().getSimpleName() + " message=" + ex.getMessage()
-                    + " fail_open=" + props.getSemantic().isFailOpen());
-            // #endregion
+            log.debug("[SemanticValidator] exception during validation — type={} message={} fail_open={}",
+                    ex.getClass().getSimpleName(), ex.getMessage(), props.getSemantic().isFailOpen());
             if (props.getSemantic().isFailOpen()) {
                 log.warn("[GUARDRAIL] Semantic validation failed (fail-open): {}", ex.getMessage());
                 return List.of();
@@ -167,18 +160,4 @@ public final class SemanticValidator implements GuardrailValidator {
     private static String truncate(String text) {
         return text.length() <= LOG_TEXT_MAX ? text : text.substring(0, LOG_TEXT_MAX) + "...";
     }
-
-    // #region agent log
-    private static void debugLog(String location, String hypothesisId, String message) {
-        String logPath = "/Users/prsingh/Desktop/forge-ai/.cursor/debug-a36924.log";
-        long ts = System.currentTimeMillis();
-        String safeMsg = message.replace("\\", "\\\\").replace("\"", "'").replace("\n", " ").replace("\r", "");
-        String entry = "{\"sessionId\":\"a36924\",\"timestamp\":" + ts
-                + ",\"location\":\"" + location + "\",\"hypothesisId\":\"" + hypothesisId
-                + "\",\"message\":\"" + safeMsg + "\"}\n";
-        try (PrintWriter pw = new PrintWriter(new FileWriter(logPath, true))) {
-            pw.print(entry);
-        } catch (IOException ignored) {}
-    }
-    // #endregion
 }

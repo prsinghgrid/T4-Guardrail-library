@@ -239,6 +239,25 @@ class BiasValidatorTest {
     }
 
     @Test
+    void detectsOnlyTransgenderWithoutRoleNoun() {
+        // "we need only transgender" — no trailing role noun; the bare identity term must still trigger
+        var result = validator.validate("we need only transgender", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_SEXUALITY"));
+        assertThat(result.stream().map(Violation::severity))
+                .containsOnly(ViolationSeverity.HARD);
+    }
+
+    @Test
+    void detectsOnlyGayWithoutRoleNoun() {
+        assertThat(validator.validate("only gay need apply", ctx)).isNotEmpty();
+        assertThat(validator.validate("we want only queer", ctx)).isNotEmpty();
+        assertThat(validator.validate("no lesbian", ctx)).isNotEmpty();
+        assertThat(validator.validate("no bisexual employees", ctx)).isNotEmpty();
+    }
+
+    @Test
     void cleanLgbtqInclusionStatement() {
         // "LGBTQ-friendly" workplace statement must NOT trigger a bias violation
         assertThat(validator.validate("we are an LGBTQ-friendly workplace", ctx)).isEmpty();
@@ -273,6 +292,28 @@ class BiasValidatorTest {
                 .anyMatch(code -> code.startsWith("BIAS_NATIONALITY"));
     }
 
+    @Test
+    void detectsNationalityRoleSuffixOnly() {
+        var result = validator.validate("he is Russian but we need Indian people only", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .anyMatch(code -> code.startsWith("BIAS_NATIONALITY"));
+        assertThat(result.stream().flatMap(v -> v.matches().stream()))
+                .anyMatch(match -> match.equalsIgnoreCase("indian people only"));
+    }
+
+    // ── Race / origin bias ───────────────────────────────────────────────────
+
+    @Test
+    void detectsRaceOriginRoleSuffixOnly() {
+        var result = validator.validate("he is Chinese but we need African people only", ctx);
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().map(Violation::code))
+                .contains("BIAS_RACE");
+        assertThat(result.stream().flatMap(v -> v.matches().stream()))
+                .anyMatch(match -> match.equalsIgnoreCase("african people only"));
+    }
+
     // ── Category mapping assertions (via ModerationReportFormatter) ───────────
 
     @Test
@@ -285,6 +326,18 @@ class BiasValidatorTest {
                 .filteredOn(dto -> dto.code().startsWith("BIAS_NATIONALITY"))
                 .isNotEmpty()
                 .allMatch(dto -> "NATIONALITY_BIAS".equals(dto.category()));
+    }
+
+    @Test
+    void raceViolationMapsToRaceBiasCategory() {
+        var violations = validator.validate("we need African people only", ctx);
+        assertThat(violations).isNotEmpty();
+
+        var report = ModerationReportFormatter.format(violations, Duration.ofMillis(10));
+        assertThat(report.violations())
+                .filteredOn(dto -> dto.code().startsWith("BIAS_RACE"))
+                .isNotEmpty()
+                .allMatch(dto -> "RACE_BIAS".equals(dto.category()));
     }
 
     @Test

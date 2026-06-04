@@ -79,7 +79,7 @@ public class GuardrailEngine {
 
         if (semantic.isEnabled() && !semanticInPipeline) {
             log.error("[GUARDRAIL] semantic.enabled=true but SEMANTIC validator is missing — "
-                    + "check ONNX paths, JDBC datasource, and pgvector seeding");
+                    + "check ONNX model/tokenizer paths (forge.guardrail.semantic.onnx.*)");
         }
     }
 
@@ -123,6 +123,9 @@ public class GuardrailEngine {
             return applyViolationSummary(builder, working, allViolations, processingTime)
                 .allowed(false)
                 .fallbackRequired(true)
+                // Report the actual sanitised length even when blocked so callers have
+                // accurate data (e.g. for logging or rate-limit decisions).
+                .sanitisedLength(working.length())
                 .build();
         }
 

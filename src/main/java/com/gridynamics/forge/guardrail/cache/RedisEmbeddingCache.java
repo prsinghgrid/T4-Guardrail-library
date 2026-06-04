@@ -46,6 +46,9 @@ public final class RedisEmbeddingCache {
 
     /**
      * Return the cached embedding for {@code text}, if present.
+     *
+     * <p>Embeddings are stored pre-normalized via {@link #put}, so no
+     * second normalization is required on the read path.
      */
     public Optional<float[]> get(String text) {
         String key = buildKey(text);
@@ -54,7 +57,8 @@ public final class RedisEmbeddingCache {
             if (encoded == null) {
                 return Optional.empty();
             }
-            return Optional.of(EmbeddingNormalizationUtil.normalize(decode(encoded)));
+            // Embedding was normalized before encoding — return decoded bytes directly.
+            return Optional.of(decode(encoded));
         } catch (Exception ex) {
             log.debug("[GUARDRAIL] Redis cache read failed for key={}: {}", key, ex.getMessage());
             return Optional.empty();

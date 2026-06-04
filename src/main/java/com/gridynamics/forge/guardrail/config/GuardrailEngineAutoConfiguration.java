@@ -25,7 +25,7 @@ import java.util.List;
 @AutoConfigureAfter({SemanticAutoConfiguration.class, GuardrailAutoConfiguration.class})
 public class GuardrailEngineAutoConfiguration {
 
-    /** Semantic on and {@link SemanticValidator} bean exists (ONNX + JDBC + pgvector). */
+    /** Semantic on and {@link SemanticValidator} bean exists (ONNX + in-memory store). */
     @Bean
     @ConditionalOnMissingBean(GuardrailEngine.class)
     @ConditionalOnProperty(prefix = "forge.guardrail.semantic", name = "enabled", havingValue = "true")

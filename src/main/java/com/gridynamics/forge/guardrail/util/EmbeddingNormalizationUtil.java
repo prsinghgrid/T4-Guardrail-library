@@ -2,7 +2,7 @@ package com.gridynamics.forge.guardrail.util;
 
 /**
  * L2-normalises embedding vectors so cosine distance ({@code <=>}) equals
- * one minus cosine similarity for pgvector queries.
+ * cosine similarity via dot product for the in-memory semantic store.
  */
 public final class EmbeddingNormalizationUtil {
 

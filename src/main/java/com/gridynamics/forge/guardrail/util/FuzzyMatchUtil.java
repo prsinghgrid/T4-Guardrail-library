@@ -66,8 +66,9 @@ public final class FuzzyMatchUtil {
                 tokenPattern.append("[\\s\\W_]*+");
             }
             char c = token.charAt(i);
-            tokenPattern.append(Pattern.quote(String.valueOf(c)));
-            tokenPattern.append("+{0,3}");
+            // Wrap Pattern.quote() in a non-capturing group so {1,4} quantifies
+            // the character itself, not the closing \E of the quote block.
+            tokenPattern.append("(?:").append(Pattern.quote(String.valueOf(c))).append("){1,4}");
         }
         return tokenPattern.toString();
     }

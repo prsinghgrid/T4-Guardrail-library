@@ -41,9 +41,10 @@ public class GuardrailViolationException extends RuntimeException {
         super(message);
         this.violations = violations != null ? List.copyOf(violations) : List.of();
         this.processingTime = processingTime;
-        this.formattedReport = violations.isEmpty()
+        // Use this.violations (already null-guarded) instead of the raw parameter.
+        this.formattedReport = this.violations.isEmpty()
                 ? null
-                : ModerationReportFormatter.format(violations, processingTime);
+                : ModerationReportFormatter.format(this.violations, processingTime);
         this.violationCode = formattedReport != null ? formattedReport.violationCode() : violationCode;
         this.details = formattedReport != null
                 ? formattedReport.details()

@@ -34,6 +34,15 @@ public final class TextNormalizationUtil {
             Map.entry('!', 'i')
     );
 
+    /** Maps spoken digit words to their numeric character equivalents. */
+    private static final Map<String, Character> DIGIT_WORDS = Map.ofEntries(
+            Map.entry("zero",  '0'), Map.entry("one",   '1'),
+            Map.entry("two",   '2'), Map.entry("three", '3'),
+            Map.entry("four",  '4'), Map.entry("five",  '5'),
+            Map.entry("six",   '6'), Map.entry("seven", '7'),
+            Map.entry("eight", '8'), Map.entry("nine",  '9')
+    );
+
     private TextNormalizationUtil() {
     }
 
@@ -156,21 +165,13 @@ public final class TextNormalizationUtil {
         if (text == null || text.isEmpty()) {
             return text == null ? "" : text;
         }
-        Map<String, Character> digitWords = Map.ofEntries(
-                Map.entry("zero",  '0'), Map.entry("one",   '1'),
-                Map.entry("two",   '2'), Map.entry("three", '3'),
-                Map.entry("four",  '4'), Map.entry("five",  '5'),
-                Map.entry("six",   '6'), Map.entry("seven", '7'),
-                Map.entry("eight", '8'), Map.entry("nine",  '9')
-        );
-
         Matcher m = SPOKEN_DIGIT_RUN_PATTERN.matcher(text);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
             String run = m.group();
             StringBuilder digits = new StringBuilder();
             for (String token : run.trim().split("\\s+")) {
-                Character d = digitWords.get(token.toLowerCase());
+                Character d = DIGIT_WORDS.get(token.toLowerCase());
                 if (d != null) digits.append(d);
             }
             m.appendReplacement(sb, Matcher.quoteReplacement(digits.toString()));

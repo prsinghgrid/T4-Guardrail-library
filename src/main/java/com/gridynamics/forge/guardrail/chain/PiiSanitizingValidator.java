@@ -72,6 +72,13 @@ public class PiiSanitizingValidator implements SanitizingValidator {
                 detectedTypes.add(entry.getKey());
             }
         }
+        // A 16-digit card number in XXXX-XXXX-XXXX-XXXX format looks like an
+        // international phone number to the loose PHONE_INTL pattern.  Suppress
+        // phone detections when a full card match already covers the same digits.
+        if (detectedTypes.contains("CREDIT_CARD")) {
+            detectedTypes.remove("PHONE_IN");
+            detectedTypes.remove("PHONE_INTL");
+        }
         if (detectedTypes.isEmpty()) return List.of();
         return List.of(Violation.of(
             "PII_STRIPPED",
@@ -153,22 +160,45 @@ public class PiiSanitizingValidator implements SanitizingValidator {
     private static Map<String, PatternReplacement> buildPatterns() {
         Map<String, PatternReplacement> m = new LinkedHashMap<>();
 
-        // Process specific identifiers before broader phone patterns to avoid partial matches.
+        // CREDIT_CARD must come before AADHAAR so that a 16-digit card number in
+        // "XXXX XXXX XXXX XXXX" format is redacted before the Aadhaar pattern tries
+        // to consume its first 12 digits as a false Aadhaar match.
+        //
+        // Uses a broad first-group of [1-9]\d{3} to cover all card networks:
+        //   Visa (4xxx), Mastercard (51-55 and 2221-2720), Amex (34/37),
+        //   Discover (6011/65xx), RuPay (6xxx, 81-82), Maestro (67xx),
+        //   UnionPay (62xx), and any other 16-digit card format.
+        // Spaces or hyphens between 4-digit groups are allowed (e.g. "6788 9980 9880 7979").
+        m.put("CREDIT_CARD", pr(
+            "\\b[1-9]\\d{3}[\\s\\-]?\\d{4}[\\s\\-]?\\d{4}[\\s\\-]?\\d{4}\\b",
+            0, "[CARD_REDACTED]"));
+
+        // AADHAAR: 12 digits (4-4-4), optional space/hyphen separators.
+        // Two guards prevent false positives inside 16-digit card numbers:
+        //   Lookbehind (?<!\\d[\\s\\-]) — don't match if immediately preceded by "digit + separator",
+        //   which means we are mid-sequence (e.g. matching digits 5-16 of a credit card).
+        //   Lookahead (?![\\s\\-]?\\d{4}\\b) — don't match if followed by another 4-digit group,
+        //   which means the 12 digits are actually the first 12 of a 16-digit card.
         m.put("AADHAAR", pr(
-            "\\b[2-9]\\d{3}[\\s\\-]?\\d{4}[\\s\\-]?\\d{4}\\b", 0, "[AADHAAR_REDACTED]"));
+            "(?<!\\d[\\s\\-])\\b[2-9]\\d{3}[\\s\\-]?\\d{4}[\\s\\-]?\\d{4}(?![\\s\\-]?\\d{4}\\b)\\b",
+            0, "[AADHAAR_REDACTED]"));
+
         m.put("PAN", pr(
             "\\b[A-Z]{5}\\d{4}[A-Z]\\b", 0, "[PAN_REDACTED]"));
-        m.put("CREDIT_CARD", pr(
-            "\\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\\b",
-            0, "[CARD_REDACTED]"));
         m.put("EMAIL", pr(
             "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}",
             Pattern.CASE_INSENSITIVE, "[EMAIL_REDACTED]"));
         m.put("PHONE_SPOKEN", pr(
             TextNormalizationUtil.SPOKEN_DIGIT_RUN_PATTERN.pattern(),
             0, "[PHONE_REDACTED]"));
+
+        // Indian mobile: 10 digits starting with 6-9, with optional +91 prefix.
+        // Allows any spacing/hyphen between digit pairs (e.g. "91 52 34 25 65",
+        // "98765 43210", "+91-98765-43210") — each digit may be separated by one
+        // optional space or hyphen from its neighbour.
         m.put("PHONE_IN", pr(
-            "(?:\\+91[\\-\\s]?)?[6-9]\\d{9}", 0, "[PHONE_REDACTED]"));
+            "(?:\\+?91[\\-\\s]?)?[6-9](?:[\\-\\s]?\\d){9}(?!\\d)",
+            0, "[PHONE_REDACTED]"));
         m.put("PHONE_INTL", pr(
             "\\+?\\d{1,3}[\\-\\s]?\\(?\\d{2,4}\\)?[\\-\\s]?\\d{3,4}[\\-\\s]?\\d{3,4}",
             0, "[PHONE_REDACTED]"));

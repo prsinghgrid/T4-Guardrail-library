@@ -104,6 +104,38 @@ class GuardrailEngineTest {
     }
 
     @Test
+    void evaluateBlocksNationalityBiasAfterPiiSanitization() {
+        GuardrailResult result = engine.evaluate(
+                "we want to hire aman sinha, his phone number is : 9876543210, "
+                        + "his aaadahr card no is 9876 09874564, his email id is : aman123@gmail.com, "
+                        + "he is russian but we need indian people only",
+                GuardrailContext.of("JD_GEN", "T4"));
+
+        assertThat(result.isAllowed()).isFalse();
+        assertThat(result.isFallbackRequired()).isTrue();
+        assertThat(result.isPiiStripped()).isTrue();
+        assertThat(result.isBiasBlocked()).isTrue();
+        assertThat(result.getViolations().stream().map(Violation::code))
+                .contains("BIAS_NATIONALITY", "PII_STRIPPED");
+    }
+
+    @Test
+    void evaluateBlocksRaceBiasAfterPiiSanitization() {
+        GuardrailResult result = engine.evaluate(
+                "we want to hire aman sinha, his phone number is : 9876543210, "
+                        + "his aaadahr card no is 9876 09874564, his email id is : aman123@gmail.com, "
+                        + "he is chinese but we need african people only",
+                GuardrailContext.of("JD_GEN", "T4"));
+
+        assertThat(result.isAllowed()).isFalse();
+        assertThat(result.isFallbackRequired()).isTrue();
+        assertThat(result.isPiiStripped()).isTrue();
+        assertThat(result.isBiasBlocked()).isTrue();
+        assertThat(result.getViolations().stream().map(Violation::code))
+                .contains("BIAS_RACE", "PII_STRIPPED");
+    }
+
+    @Test
     void runsAllValidatorsBeforeBlockingDecision() {
         AtomicBoolean semanticRan = new AtomicBoolean(false);
         var registry = GuardrailTestFixtures.patternRegistry(props);

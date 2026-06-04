@@ -80,27 +80,29 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Semantic layer (ONNX + pgvector). Activate with forge.guardrail.semantic.enabled=true -->
+        <!-- Bean Validation API (optional — @Valid / @NotBlank on controller layer).
+             Consumer apps satisfy this at runtime via spring-boot-starter-validation. -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+
+        <!-- Semantic layer (ONNX, in-memory). Activate with forge.guardrail.semantic.enabled=true -->
         <dependency>
             <groupId>com.microsoft.onnxruntime</groupId>
             <artifactId>onnxruntime</artifactId>
             <version>1.18.0</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>ai.djl.huggingface</groupId>
             <artifactId>tokenizers</artifactId>
             <version>0.29.0</version>
+            <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
-        </dependency>
-        <!-- Required at runtime when semantic + spring.datasource are configured -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+        <!-- Redis embedding cache — optional; activated by forge.guardrail.semantic.redis.enabled=true -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>

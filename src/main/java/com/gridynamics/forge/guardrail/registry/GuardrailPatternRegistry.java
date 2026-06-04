@@ -30,6 +30,13 @@ public final class GuardrailPatternRegistry {
                     + "worthless|useless|pathetic|disgusting|lazy|trash|garbage|scum|subhuman|"
                     + "terrible|awful|horrible|horrendous|the\\s+worst|good\\s+for\\s+nothing|"
                     + "dumb|brainless|inadequate|unqualified|incapable";
+    private static final String NATIONALITY_WORDS =
+            "russian|chinese|american|indian|pakistani|bangladeshi|mexican|brazilian|nigerian|filipino|"
+                    + "russians|americans|indians|pakistanis|bangladeshis|mexicans|brazilians|nigerians|filipinos";
+    private static final String NATIONALITY_ROLE_NOUNS =
+            "people|persons?|candidates?|applicants?|employees?|workers?|professionals?";
+    private static final String RACE_ORIGIN_WORDS =
+            "african|asian|black|white|caucasian|latino|latina|hispanic|arab|european";
 
     private final Map<PatternCategory, List<CategorizedPattern>> patternsByCategory;
 
@@ -69,7 +76,7 @@ public final class GuardrailPatternRegistry {
     private static List<CategorizedPattern> buildToxicityPatterns(GuardrailProperties props) {
         List<CategorizedPattern> patterns = new ArrayList<>();
 
-        if (isCategoryEnabled(props.getToxicity().getCategories().getViolence())) {
+        if (props.getToxicity().getCategories().getViolence()) {
             patterns.add(cp("kill|murder|slaughter|execute", "violence_terms", PatternCategory.TOXICITY, "violence", 0.85, 0.92));
             patterns.add(cp("hurt|harm|attack|abuse|assault", "harm_terms", PatternCategory.TOXICITY, "violence", 0.55, 0.80));
             patterns.add(cp("hurt\\s+them\\s+badly|people\\s+should\\s+die", "violence_phrases", PatternCategory.TOXICITY, "violence", 0.90, 0.95));
@@ -88,12 +95,12 @@ public final class GuardrailPatternRegistry {
                     "wish_dead", PatternCategory.TOXICITY, "violence", 0.80, 0.90));
         }
 
-        if (isCategoryEnabled(props.getToxicity().getCategories().getHateSpeech())) {
+        if (props.getToxicity().getCategories().getHateSpeech()) {
             patterns.add(cp("racist|racial\\s+slur|terrorist|hate\\s+everyone", "hate_terms", PatternCategory.TOXICITY, "hate_speech", 0.80, 0.90));
             patterns.add(cp("destroy\\s+all\\s+systems", "destroy_systems", PatternCategory.TOXICITY, "hate_speech", 0.85, 0.92));
         }
 
-        if (isCategoryEnabled(props.getToxicity().getCategories().getSelfHarm())) {
+        if (props.getToxicity().getCategories().getSelfHarm()) {
             patterns.add(cp("go\\s+die|you\\s+deserve\\s+to\\s+die|kill\\s+yourself|kys", "self_harm", PatternCategory.TOXICITY, "self_harm", 0.95, 0.97));
             patterns.add(cp("self[-\\s]?harm\\s+instructions", "self_harm_instructions", PatternCategory.TOXICITY, "self_harm", 0.90, 0.95));
             // Broader group/person death threats — "interns deserve to die", "[group] should die"
@@ -101,7 +108,7 @@ public final class GuardrailPatternRegistry {
                     "group_death_threat", PatternCategory.TOXICITY, "self_harm", 0.88, 0.93));
         }
 
-        if (isCategoryEnabled(props.getToxicity().getCategories().getCyberAbuse())) {
+        if (props.getToxicity().getCategories().getCyberAbuse()) {
             patterns.add(cp("teach\\s+me\\s+how\\s+to\\s+hack|how\\s+to\\s+hack", "hack_request", PatternCategory.TOXICITY, "cyber_abuse", 0.75, 0.88));
             patterns.add(cp("hack\\s+banking|bypass\\s+authentication|create\\s+malware", "cyber_abuse_phrases", PatternCategory.TOXICITY, "cyber_abuse", 0.88, 0.93));
             patterns.add(cp("ways\\s+to\\s+steal\\s+passwords|how\\s+to\\s+steal", "steal_request", PatternCategory.TOXICITY, "cyber_abuse", 0.80, 0.90));
@@ -109,7 +116,7 @@ public final class GuardrailPatternRegistry {
             patterns.add(cp("(?:want\\s+to|trying\\s+to|how\\s+(?:do\\s+I|can\\s+I)\\s+)\\s*(?:hack|crack|exploit|phish|ddos|bruteforce|brute.?force)", "hack_intent", PatternCategory.TOXICITY, "cyber_abuse", 0.60, 0.80));
         }
 
-        if (isCategoryEnabled(props.getToxicity().getCategories().getIllegalActivities())) {
+        if (props.getToxicity().getCategories().getIllegalActivities()) {
             patterns.add(cp("make\\s+a\\s+bomb|bomb\\s+threat", "bomb_terms", PatternCategory.TOXICITY, "illegal_activities", 0.95, 0.96));
             patterns.add(cp("child\\s+exploitation|sexually\\s+explicit", "explicit_illegal", PatternCategory.TOXICITY, "illegal_activities", 0.95, 0.97));
             // Intent-prefixed bomb verb — catches "I want to bomb", "I'm going to bomb"
@@ -125,7 +132,7 @@ public final class GuardrailPatternRegistry {
         List<CategorizedPattern> patterns = new ArrayList<>();
         GuardrailProperties.BiasProperties bias = props.getBias();
 
-        if (isCategoryEnabled(bias.getCategories().getGender())) {
+        if (bias.getCategories().getGender()) {
             patterns.add(cp("male\\s+only|female\\s+only|men\\s+preferred|women\\s+preferred", "gender_exclusion", PatternCategory.BIAS, "gender", 0.95, 0.96));
             patterns.add(cp("no\\s+transgenders?|cisgender\\s+only|no\\s+non-binary|no\\s+genderqueer", "gender_identity_exclusion", PatternCategory.BIAS, "gender", 0.95, 0.96));
             patterns.add(cp("he/him\\s+required|she/her\\s+required|no\\s+women|no\\s+men", "gender_requirement", PatternCategory.BIAS, "gender", 0.95, 0.96));
@@ -156,48 +163,60 @@ public final class GuardrailPatternRegistry {
         }
 
 
-        if (isCategoryEnabled(bias.getCategories().getReligion())) {
+        if (bias.getCategories().getReligion()) {
             patterns.add(cp("muslim\\s+only|hindu\\s+only|christian\\s+only|sikh\\s+only|jain\\s+only", "religion_exclusion", PatternCategory.BIAS, "religion", 0.95, 0.96));
             patterns.add(cp("no\\s+muslims|no\\s+hindus|no\\s+christians", "religion_ban", PatternCategory.BIAS, "religion", 0.95, 0.96));
         }
 
-        if (isCategoryEnabled(bias.getCategories().getCaste())) {
+        if (bias.getCategories().getCaste()) {
             patterns.add(cp("brahmin\\s+only|upper\\s+caste|lower\\s+caste", "caste_exclusion", PatternCategory.BIAS, "caste", 0.95, 0.97));
             patterns.add(cp("caste\\s+preferred|scheduled\\s+caste\\s+not|obc\\s+only", "caste_preference", PatternCategory.BIAS, "caste", 0.95, 0.96));
         }
 
-        if (isCategoryEnabled(bias.getCategories().getNationality())) {
+        if (bias.getCategories().getNationality()) {
             patterns.add(cp("indians\\s+only|no\\s+foreigners|whites\\s+only|no\\s+immigrants", "nationality_exclusion", PatternCategory.BIAS, "nationality", 0.95, 0.96));
             patterns.add(cp("native\\s+speakers\\s+only", "language_nationality", PatternCategory.BIAS, "nationality", 0.75, 0.85));
             // "only Russian people", "only Chinese candidates", "only American employees"
             // Suffix (ese|ian|ish|ni|an) is REQUIRED so gender words like "female" don't match.
             patterns.add(cp("only\\s+(?:[a-zA-Z]+(?:ese|ian|ish|ni|an))\\s+(?:people|persons?|candidates?|applicants?|employees?|workers?)",
                     "nationality_exclusive", PatternCategory.BIAS, "nationality", 0.90, 0.93));
+            // "Indian people only", "Russian candidates only", including "we need Indian people only".
+            patterns.add(cp("(?:" + NATIONALITY_WORDS + ")\\s+(?:" + NATIONALITY_ROLE_NOUNS + ")\\s+only",
+                    "nationality_role_suffix_only", PatternCategory.BIAS, "nationality", 0.92, 0.95));
             // Named common nationalities — catches both "Russians only" and "only Russians"
-            patterns.add(cp("(?:russians?|chinese|americans?|indians?|pakistanis?|bangladeshis?|mexicans?|brazilians?|nigerians?|filipinos?)\\s+only"
-                            + "|only\\s+(?:russians?|chinese|americans?|indians?|pakistanis?|bangladeshis?|mexicans?|brazilians?|nigerians?|filipinos?)",
+            patterns.add(cp("(?:" + NATIONALITY_WORDS + ")\\s+only"
+                            + "|only\\s+(?:" + NATIONALITY_WORDS + ")",
                     "nationality_named", PatternCategory.BIAS, "nationality", 0.92, 0.95));
         }
 
-        if (isCategoryEnabled(bias.getCategories().getDisability())) {
+        if (bias.getCategories().getRace()) {
+            patterns.add(cp("(?:" + RACE_ORIGIN_WORDS + ")\\s+(?:" + NATIONALITY_ROLE_NOUNS + ")\\s+only"
+                            + "|only\\s+(?:" + RACE_ORIGIN_WORDS + ")\\s+(?:" + NATIONALITY_ROLE_NOUNS + ")"
+                            + "|no\\s+(?:" + RACE_ORIGIN_WORDS + ")\\s+(?:" + NATIONALITY_ROLE_NOUNS + ")",
+                    "race_origin_hiring_filter", PatternCategory.BIAS, "race", 0.92, 0.95));
+        }
+
+        if (bias.getCategories().getDisability()) {
             patterns.add(cp("no\\s+disabled|physically\\s+fit\\s+only|no\\s+handicapped", "disability_exclusion", PatternCategory.BIAS, "disability", 0.95, 0.97));
             patterns.add(cp("able[-\\s]?bodied\\s+only|no\\s+wheelchair", "disability_requirement", PatternCategory.BIAS, "disability", 0.95, 0.96));
         }
 
-        if (isCategoryEnabled(bias.getCategories().getSexuality())) {
+        if (bias.getCategories().getSexuality()) {
             patterns.add(cp("heterosexual\\s+only|straight\\s+only|no\\s+lgbtq", "sexuality_exclusion", PatternCategory.BIAS, "sexuality", 0.95, 0.97));
             // Reverse: requiring LGBTQ exclusively — also discriminatory in hiring
             patterns.add(cp("lgbtq\\s+only|only\\s+lgbtq|lgbtq\\s+(?:candidates?|applicants?|employees?|persons?|people)",
                     "lgbtq_only", PatternCategory.BIAS, "sexuality", 0.92, 0.94));
-            // Individual identity exclusions: "no gay employees", "no transgender people"
-            patterns.add(cp("no\\s+(?:gay|lesbian|bisexual|trans(?:gender)?|queer)\\s+(?:people|persons?|candidates?|applicants?|employees?)?",
+            // Individual identity exclusions: "no gay employees", "no transgender", "no queer people"
+            // The trailing role noun is fully optional — space + noun are grouped together.
+            patterns.add(cp("no\\s+(?:gay|lesbian|bisexual|trans(?:gender)?|queer)(?:\\s+(?:people|persons?|candidates?|applicants?|employees?))?",
                     "identity_exclusion", PatternCategory.BIAS, "sexuality", 0.95, 0.97));
-            // Requiring a specific orientation: "only gay candidates", "only transgender applicants"
-            patterns.add(cp("only\\s+(?:gay|lesbian|bisexual|trans(?:gender)?|queer)\\s+(?:candidates?|applicants?|employees?|people)?",
+            // Requiring a specific orientation: "only transgender", "only gay candidates"
+            // The trailing role noun is fully optional — space + noun are grouped together.
+            patterns.add(cp("only\\s+(?:gay|lesbian|bisexual|trans(?:gender)?|queer)(?:\\s+(?:candidates?|applicants?|employees?|people))?",
                     "identity_only", PatternCategory.BIAS, "sexuality", 0.92, 0.94));
         }
 
-        if (isCategoryEnabled(bias.getCategories().getAge())) {
+        if (bias.getCategories().getAge()) {
             patterns.add(cp("young\\s+candidates\\s+only|no\\s+candidates\\s+above|below\\s+25\\s+only", "age_exclusion", PatternCategory.BIAS, "age", 0.90, 0.94));
             patterns.add(cp("maximum\\s+age|minimum\\s+age|too\\s+old|too\\s+young|age\\s+limit", "age_limit", PatternCategory.BIAS, "age", 0.80, 0.88));
             // Numeric age thresholds: "under 30", "above 25", "below 35", "candidates under 30"
@@ -231,7 +250,7 @@ public final class GuardrailPatternRegistry {
         patterns.add(cp("height\\s+requirement|weight\\s+requirement|attractive\\s+candidates|good\\s+looking\\s+only", "appearance", PatternCategory.BIAS, "appearance", 0.85, 0.90));
         patterns.add(cp("unmarried\\s+only|no\\s+pregnant|single\\s+only|married\\s+preferred|no\\s+children", "marital_status", PatternCategory.BIAS, "marital_status", 0.85, 0.90));
 
-        if (isCategoryEnabled(bias.getCategories().getEducation())) {
+        if (bias.getCategories().getEducation()) {
             // Named institution restrictions: "from IIT", "IIT graduates only", "from IIM only"
             patterns.add(cp("(?:only\\s+)?(?:from\\s+)?(?:IIT|IIM|NIT|BITS|IISc|AIIMS|IITs|IIMs|NITs)\\s*(?:graduates?|alumni|candidates?|applicants?|only|students?)?",
                     "education_institution", PatternCategory.BIAS, "education", 0.90, 0.94));
@@ -371,13 +390,9 @@ public final class GuardrailPatternRegistry {
         );
     }
 
-    private static boolean isCategoryEnabled(boolean enabled) {
-        return enabled;
-    }
-
-    private static void mergeCustomPatterns(List<CategorizedPattern> target, List<String> customRegexes,
-                                            PatternCategory category, String subcategory,
-                                            double weight, double confidence) {
+private static void mergeCustomPatterns(List<CategorizedPattern> target, List<String> customRegexes,
+                                             PatternCategory category, String subcategory,
+                                             double weight, double confidence) {
         if (customRegexes == null || customRegexes.isEmpty()) {
             return;
         }

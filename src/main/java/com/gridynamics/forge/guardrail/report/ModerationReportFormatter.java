@@ -79,10 +79,10 @@ public final class ModerationReportFormatter {
         double confidence = v.confidence() != null ? v.confidence() : defaultConfidence(v);
 
         return new ModerationViolationDto(
-                mapCode(v.code()),
+                v.code(),
                 v.message(),
                 v.severity(),
-                mapDetector(v.detector()),
+                v.detector(),
                 v.matches(),
                 v.timestamp(),
                 Math.round(scorePercent * 10.0) / 10.0,
@@ -92,19 +92,12 @@ public final class ModerationReportFormatter {
         );
     }
 
-    private static String mapCode(String code) {
-        return code;
-    }
-
-    private static String mapDetector(String detector) {
-        return detector;
-    }
-
     private static String mapCategory(Violation v) {
         if (v.category() != null && !v.category().isBlank()) {
             return switch (v.category().toLowerCase()) {
                 case "gender"      -> "GENDER_BIAS";
                 case "nationality" -> "NATIONALITY_BIAS";
+                case "race"        -> "RACE_BIAS";
                 case "religion"    -> "RELIGION_BIAS";
                 case "caste"       -> "CASTE_BIAS";
                 case "age"         -> "AGE_BIAS";
